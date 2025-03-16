@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Medicamentos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        // Función para eliminar un medicamento.
+        function eliminarMedicamento(id) {
+            if (confirm("¿Estás seguro de que deseas eliminar este medicamento?")) {
+                fetch(`/delete/${id}`, { 
+                    method: "POST"  // Se usa el método POST para eliminar.
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message === "Eliminado correctamente") {
+                        // Eliminar el medicamento de la lista del DOM sin recargar la página.
+                        const listItem = document.querySelector(`button[onclick="eliminarMedicamento('${id}')"]`).closest('li');
+                        listItem.remove();
+                    } else {
+                        alert("Hubo un error al eliminar el medicamento.");
+                    }
+                })
+                .catch(error => console.error("Error:", error));  // Manejo de errores en caso de que falle la petición.
+            }
+        }
+    </script>
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="card shadow-lg p-4">
+            <h2 class="text-center text-primary mb-4">
+                <i class="fas fa-pills"></i> Registro de Medicamentos <i class="fas fa-capsules"></i>
+            </h2>
+            <!-- Formulario para agregar un medicamento -->
+            <form action="/add" method="POST" class="mb-4">
+                <div class="mb-3">
+                    <label for="nombre" class="form-label">Nombre del Medicamento</label>
+                    <input type="text" class="form-control" id="nombre" name="nombre" required placeholder="Ej. Paracetamol">
+                </div>
+                <div class="mb-3">
+                    <label for="hora" class="form-label">Hora de toma</label>
+                    <input type="time" class="form-control" id="hora" name="hora" required>
+                </div>
+                <div class="mb-3">
+                    <label for="duracion" class="form-label">Duración (días)</label>
+                    <input type="number" class="form-control" id="duracion" name="duracion" min="1" required placeholder="Ej. 5 días">
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Agregar Medicamento</button>
+            </form>
+
+            <h4 class="mb-3">Medicamentos Registrados</h4>
+            <ul class="list-group">
+                <!-- Mostrar la lista de medicamentos registrados -->
+                {% for medicamento in medicamentos %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <!-- Formulario para actualizar un medicamento -->
+                        <form action="/update/{{ medicamento[0] }}" method="POST" class="d-flex w-75">
+                            <input type="text" name="nombre" class="form-control me-2" value="{{ medicamento[1] }}" required>
+                            <input type="time" name="hora" class="form-control me-2" value="{{ medicamento[2] }}" required>
+                            <input type="number" name="duracion" class="form-control me-2" value="{{ medicamento[3] }}" min="1" required>
+                            <button type="submit" class="btn btn-warning btn-sm">Actualizar</button>
+                        </form>
+                        <!-- Botón para eliminar un medicamento -->
+                        <button onclick="eliminarMedicamento('{{ medicamento[0] }}')" class="btn btn-danger btn-sm">Eliminar</button>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
